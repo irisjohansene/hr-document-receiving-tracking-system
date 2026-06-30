@@ -1,0 +1,13 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Nav
+@inject TokenStore Tokens
+@inject AuthenticationStateProvider Auth
+@inject ApiClient Api
+@inject IJSRuntime JS
+@inject NotificationConnection Push
+<RadzenComponents />
+<div class="app-shell">
+    <aside class="sidebar"><div class="brand"><img src="DRTS_icon.png" alt="DRTS" style="width:48px;height:48px;object-fit:contain;border-radius:12px" /><div><strong>DRTS</strong><small>Receiving &amp; Tracking</small></div></div><NavMenu /></aside>
+    <main><header class="topbar"><div><strong>Document Control Center</strong><span>Secure HR receiving workflow</span></div><AuthorizeView><Authorized Context="state"><div class="user-area"><RadzenIcon Icon="account_circle" /><span>@state.User.Identity?.Name</span><RadzenButton Icon="logout" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="Logout" /></div></Authorized></AuthorizeView></header><section class="content">@Body</section></main>
+</div>
+@code { protected override async Task OnAfterRenderAsync(bool first) { if (first) { await JS.InvokeVoidAsync("setApiBase", Api.BaseUrl); await Push.StartAsync(); } } private async Task Logout() { await Tokens.ClearAsync(); ((JwtAuthenticationStateProvider)Auth).Changed(); Nav.NavigateTo("login", true); } }

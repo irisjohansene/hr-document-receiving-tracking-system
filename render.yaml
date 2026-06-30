@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: hrdocs-api
+    runtime: docker
+    dockerfilePath: ./HRDocs.Api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_KEY
+        generateValue: true
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: AllowedOrigins__0
+        value: https://hrdocs-client.onrender.com
+  - type: web
+    name: hrdocs-client
+    runtime: static
+    buildCommand: dotnet publish HRDocs.Client/HRDocs.Client.csproj -c Release -o publish-client
+    staticPublishPath: ./publish-client/wwwroot
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

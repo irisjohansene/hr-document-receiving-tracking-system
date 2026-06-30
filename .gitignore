@@ -1,0 +1,24 @@
+# Build output
+**/bin/
+**/obj/
+.tmp/
+publish-client/
+
+# IDE and user-specific settings
+.vs/
+*.user
+*.suo
+
+# Runtime data and uploads
+HRDocs.Api/uploads/
+*.log
+
+# Local secrets and environment overrides
+.env
+.env.*
+appsettings.Local.json
+appsettings.*.Local.json
+
+# OS files
+.DS_Store
+Thumbs.db

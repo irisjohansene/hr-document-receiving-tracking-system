@@ -1,0 +1,4 @@
+<nav class="nav-links">
+<AuthorizeView Roles="Admin"><Authorized><NavLink href="admin" Match="NavLinkMatch.All"><RadzenIcon Icon="dashboard" />Dashboard</NavLink><NavLink href="requests"><RadzenIcon Icon="inbox" />All Requests</NavLink><NavLink href="reports"><RadzenIcon Icon="analytics" />Reports</NavLink></Authorized></AuthorizeView>
+<AuthorizeView Roles="User"><Authorized><NavLink href="" Match="NavLinkMatch.All"><RadzenIcon Icon="space_dashboard" />Overview</NavLink><NavLink href="submit"><RadzenIcon Icon="note_add" />New Request</NavLink><NavLink href="requests"><RadzenIcon Icon="track_changes" />My Requests</NavLink></Authorized></AuthorizeView>
+</nav>

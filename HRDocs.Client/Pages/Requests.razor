@@ -1,0 +1,5 @@
+@page "/requests"
+@attribute [Authorize]
+@inject ApiClient Api
+<PageTitle>Requests</PageTitle><div class="page-heading"><div><h1>Document requests</h1><p>Search and review the complete receiving queue.</p></div></div><RequestTable Items="items" />
+@code { List<DocumentRequestDto> items=[];protected override async Task OnInitializedAsync()=>items=await Api.GetAsync<List<DocumentRequestDto>>("api/requests")??[]; }

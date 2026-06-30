@@ -1,0 +1,5 @@
+@page "/admin"
+@attribute [Authorize(Roles="Admin")]
+@inject ApiClient Api
+<PageTitle>HR Dashboard</PageTitle><div class="page-heading"><div><h1>Good day, HR team</h1><p>Here is the current document receiving workload.</p></div></div>@if(data is null){<RadzenProgressBarCircular Mode="ProgressBarMode.Indeterminate" ShowValue="false" />}else{<div class="stat-grid"><div class="stat-card amber"><span>Pending review</span><strong>@data.Pending</strong></div><div class="stat-card green"><span>Approved</span><strong>@data.Approved</strong></div><div class="stat-card red"><span>Rejected</span><strong>@data.Rejected</strong></div><div class="stat-card blue"><span>Completed</span><strong>@data.Completed</strong></div></div><h2>Recent requests</h2><RequestTable Items="data.Recent" />}
+@code { DashboardDto? data;protected override async Task OnInitializedAsync()=>data=await Api.GetAsync<DashboardDto>("api/admin/dashboard"); }

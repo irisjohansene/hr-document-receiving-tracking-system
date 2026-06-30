@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="HRDocs.Api/HRDocs.Api.csproj" />
+  <Project Path="HRDocs.Client/HRDocs.Client.csproj" />
+  <Project Path="HRDocs.Infrastructure/HRDocs.Infrastructure.csproj" />
+  <Project Path="HRDocs.Shared/HRDocs.Shared.csproj" />
+</Solution>

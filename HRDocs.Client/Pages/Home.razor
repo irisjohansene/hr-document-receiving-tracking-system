@@ -1,0 +1,9 @@
+@page "/"
+@attribute [Authorize(Roles = "User")]
+@inject ApiClient Api
+<PageTitle>My Documents</PageTitle>
+<div class="page-heading"><div><h1>My document requests</h1><p>Submit documents and follow every step of the receiving process.</p></div><RadzenButton Text="New request" Icon="add" Click="@(() => Nav.NavigateTo("submit"))" /></div>
+<div class="stat-grid"><div class="stat-card amber"><span>Pending</span><strong>@Count(DocumentRequestStatus.Pending)</strong></div><div class="stat-card green"><span>Approved</span><strong>@Count(DocumentRequestStatus.Approved)</strong></div><div class="stat-card red"><span>Rejected</span><strong>@Count(DocumentRequestStatus.Rejected)</strong></div><div class="stat-card blue"><span>Completed</span><strong>@Count(DocumentRequestStatus.Completed)</strong></div></div>
+<RequestTable Items="items" />
+@inject NavigationManager Nav
+@code { List<DocumentRequestDto> items = []; protected override async Task OnInitializedAsync() { items = await Api.GetAsync<List<DocumentRequestDto>>("api/requests") ?? []; } int Count(DocumentRequestStatus s) => items.Count(x => x.Status == s); }

@@ -1,0 +1,10 @@
+@page "/login"
+@layout AuthLayout
+@inject ApiClient Api
+@inject TokenStore Store
+@inject AuthenticationStateProvider Auth
+@inject NavigationManager Nav
+@inject NotificationService Toast
+<PageTitle>Sign in</PageTitle>
+<div class="auth-card"><div class="auth-logo">HR</div><h1>Welcome back</h1><p>Sign in to receive and track HR documents.</p><RadzenTemplateForm TItem="LoginRequest" Data="model" Submit="@SubmitLogin"><RadzenFormField Text="Email" Variant="Variant.Outlined"><RadzenTextBox @bind-Value="model.Email" Name="Email" Style="width:100%" /></RadzenFormField><RadzenRequiredValidator Component="Email" Text="Email is required" /><RadzenFormField Text="Password" Variant="Variant.Outlined"><RadzenPassword @bind-Value="model.Password" Name="Password" Style="width:100%" /></RadzenFormField><RadzenRequiredValidator Component="Password" Text="Password is required" /><RadzenButton Text="Sign in" Icon="login" ButtonType="ButtonType.Submit" Disabled="busy" Style="width:100%" /><div class="auth-link">No account? <a href="register">Create one</a></div></RadzenTemplateForm></div>
+@code { LoginRequest model = new(); bool busy; async Task SubmitLogin(LoginRequest _) { try { busy=true; var r=await Api.PostAsync<AuthResponse>("api/auth/login",model); if(r is null)return; await Store.SetAsync(r.Token); ((JwtAuthenticationStateProvider)Auth).Changed(); Nav.NavigateTo(r.User.Role==AppRoles.Admin?"admin":""); } catch(Exception e){Toast.Notify(NotificationSeverity.Error,"Sign in failed",e.Message);} finally{busy=false;} } }
