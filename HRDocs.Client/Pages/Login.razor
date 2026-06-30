@@ -11,33 +11,41 @@
     <div class="auth-logo">HR</div>
     <h1>Welcome back</h1>
     <p>Sign in to receive and track HR documents.</p>
-    <EditForm Model="model" OnValidSubmit="SubmitLogin" FormName="login">
-        <DataAnnotationsValidator />
-        <div class="native-field">
-            <label for="login-email">Email</label>
-            <InputText id="login-email" class="rz-textbox" @bind-Value="model.Email" autocomplete="email" />
-            <ValidationMessage For="@(() => model.Email)" />
-        </div>
-        <div class="native-field">
-            <label for="login-password">Password</label>
-            <InputText id="login-password" class="rz-textbox" type="password" @bind-Value="model.Password" autocomplete="current-password" />
-            <ValidationMessage For="@(() => model.Password)" />
-        </div>
-        <RadzenButton Text="Sign in" Icon="login" ButtonType="ButtonType.Submit" Disabled="busy" Style="width:100%" />
-        <div class="auth-link">No account? <a href="register">Create one</a></div>
-    </EditForm>
+    <div class="native-field">
+        <label for="login-email">Email</label>
+        <input id="login-email" class="rz-textbox" type="email" @bind="email" @bind:event="oninput" autocomplete="email" />
+    </div>
+    <div class="native-field">
+        <label for="login-password">Password</label>
+        <input id="login-password" class="rz-textbox" type="password" @bind="password" @bind:event="oninput" autocomplete="current-password" />
+    </div>
+    @if (!string.IsNullOrWhiteSpace(error))
+    {
+        <div class="validation-message" style="margin-bottom:12px">@error</div>
+    }
+    <RadzenButton Text="Sign in" Icon="login" ButtonType="ButtonType.Button" Click="SubmitLogin" Disabled="busy" Style="width:100%" />
+    <div class="auth-link">No account? <a href="register">Create one</a></div>
 </div>
 
 @code {
-    private readonly LoginRequest model = new();
+    private string email = "";
+    private string password = "";
+    private string? error;
     private bool busy;
 
     private async Task SubmitLogin()
     {
+        error = null;
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            error = "Email and password are required.";
+            return;
+        }
+
         try
         {
             busy = true;
-            var response = await Api.PostAsync<AuthResponse>("api/auth/login", model);
+            var response = await Api.PostAsync<AuthResponse>("api/auth/login", new LoginRequest { Email = email, Password = password });
             if (response is null) return;
             await Store.SetAsync(response.Token);
             ((JwtAuthenticationStateProvider)Auth).Changed();
@@ -45,6 +53,7 @@
         }
         catch (Exception ex)
         {
+            error = ex.Message;
             Toast.Notify(NotificationSeverity.Error, "Sign in failed", ex.Message);
         }
         finally { busy = false; }
