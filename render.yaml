@@ -20,7 +20,6 @@ services:
   - type: web
     name: hrdocs-client
     runtime: static
-    plan: free
     buildCommand: dotnet publish HRDocs.Client/HRDocs.Client.csproj -c Release -o publish-client
     staticPublishPath: ./publish-client/wwwroot
     routes:
