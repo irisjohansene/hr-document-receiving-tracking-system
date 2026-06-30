@@ -20,7 +20,7 @@ services:
   - type: web
     name: hrdocs-client
     runtime: static
-    buildCommand: dotnet publish HRDocs.Client/HRDocs.Client.csproj -c Release -o publish-client
+    buildCommand: bash render-build-client.sh
     staticPublishPath: ./publish-client/wwwroot
     routes:
       - type: rewrite
