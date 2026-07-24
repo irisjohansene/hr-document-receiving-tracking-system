@@ -14,8 +14,21 @@ public sealed class AuthController(AppDbContext db, TokenService tokens) : Contr
     {
         var email = input.Email.Trim().ToLowerInvariant();
         if (await db.Users.AnyAsync(x => x.Email == email)) return Conflict("An account with this email already exists.");
-        if (!await db.Departments.AnyAsync(x => x.Id == input.DepartmentId && x.IsActive)) return BadRequest("Invalid department.");
-        var user = new User { FullName = input.FullName.Trim(), Email = email, DepartmentId = input.DepartmentId, RoleId = 2 };
+        var externalOrganizationName = input.ExternalOrganizationName?.Trim();
+        int? departmentId = null;
+
+        if (input.AccountKind == AccountKind.InternalOffice)
+        {
+            if (input.DepartmentId is null || !await db.Departments.AnyAsync(x => x.Id == input.DepartmentId && x.IsActive)) return BadRequest("Please select a valid office/department.");
+            departmentId = input.DepartmentId;
+            externalOrganizationName = null;
+        }
+        else if (string.IsNullOrWhiteSpace(externalOrganizationName))
+        {
+            return BadRequest("Please enter the external customer office or organization.");
+        }
+
+        var user = new User { FullName = input.FullName.Trim(), Email = email, AccountKind = input.AccountKind, DepartmentId = departmentId, ExternalOrganizationName = externalOrganizationName, RoleId = 2 };
         user.PasswordHash = new PasswordHasher<User>().HashPassword(user, input.Password);
         db.Users.Add(user); await db.SaveChangesAsync();
         await db.Entry(user).Reference(x => x.Role).LoadAsync(); await db.Entry(user).Reference(x => x.Department).LoadAsync();

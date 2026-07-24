@@ -19,6 +19,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     {
         b.Entity<Role>().HasIndex(x => x.Name).IsUnique();
         b.Entity<User>().HasIndex(x => x.Email).IsUnique();
+        b.Entity<User>().Property(x => x.AccountKind).HasConversion<string>().HasMaxLength(40);
+        b.Entity<User>().Property(x => x.ExternalOrganizationName).HasMaxLength(160);
         b.Entity<Department>().HasIndex(x => x.Name).IsUnique();
         b.Entity<DocumentType>().HasIndex(x => x.Name).IsUnique();
         b.Entity<DocumentRequest>().HasIndex(x => x.TrackingNumber).IsUnique();

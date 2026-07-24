@@ -13,8 +13,10 @@ public sealed class User : Entity
     public string PasswordHash { get; set; } = "";
     public int RoleId { get; set; }
     public Role Role { get; set; } = null!;
+    public AccountKind AccountKind { get; set; } = AccountKind.InternalOffice;
     public int? DepartmentId { get; set; }
     public Department? Department { get; set; }
+    public string? ExternalOrganizationName { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }

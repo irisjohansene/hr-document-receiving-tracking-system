@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace HRDocs.Shared;
 
 public enum DocumentRequestStatus { Pending, Approved, Rejected, Completed }
+public enum AccountKind { InternalOffice, ExternalCustomer }
 public static class AppRoles { public const string Admin = "Admin"; public const string User = "User"; }
 
 public sealed class LoginRequest { [Required, EmailAddress] public string Email { get; set; } = ""; [Required] public string Password { get; set; } = ""; }
@@ -11,10 +12,12 @@ public sealed class RegisterRequest
     [Required, StringLength(120)] public string FullName { get; set; } = "";
     [Required, EmailAddress] public string Email { get; set; } = "";
     [Required, MinLength(8)] public string Password { get; set; } = "";
-    [Required] public int DepartmentId { get; set; }
+    [Required] public AccountKind AccountKind { get; set; } = AccountKind.InternalOffice;
+    public int? DepartmentId { get; set; }
+    [StringLength(160)] public string? ExternalOrganizationName { get; set; }
 }
 public sealed record AuthResponse(string Token, DateTime ExpiresAtUtc, UserInfo User);
-public sealed record UserInfo(int Id, string FullName, string Email, string Role, int? DepartmentId, string? DepartmentName);
+public sealed record UserInfo(int Id, string FullName, string Email, string Role, int? DepartmentId, string? DepartmentName, AccountKind AccountKind, string? ExternalOrganizationName);
 public sealed record LookupItem(int Id, string Name);
 
 public sealed class CreateDocumentRequest

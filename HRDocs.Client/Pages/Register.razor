@@ -5,5 +5,127 @@
 @inject AuthenticationStateProvider Auth
 @inject NavigationManager Nav
 @inject NotificationService Toast
-<PageTitle>Create account</PageTitle><div class="auth-card wide"><div class="auth-logo">HR</div><h1>Create your account</h1><p>Register to submit and track documents.</p><RadzenTemplateForm TItem="RegisterRequest" Data="model" Submit="@SubmitRegistration"><RadzenFormField Text="Full name"><RadzenTextBox @bind-Value="model.FullName" Name="Name" Style="width:100%" /></RadzenFormField><RadzenRequiredValidator Component="Name" Text="Name is required" /><RadzenFormField Text="Email"><RadzenTextBox @bind-Value="model.Email" Name="Email" Style="width:100%" /></RadzenFormField><RadzenRequiredValidator Component="Email" Text="Email is required" /><RadzenFormField Text="Department"><RadzenDropDown @bind-Value="model.DepartmentId" Data="departments" TextProperty="Name" ValueProperty="Id" Name="Dept" Style="width:100%" /></RadzenFormField><RadzenRequiredValidator Component="Dept" Text="Department is required" /><RadzenFormField Text="Password (8+ characters)"><RadzenPassword @bind-Value="model.Password" Name="Password" Style="width:100%" /></RadzenFormField><RadzenButton Text="Create account" ButtonType="ButtonType.Submit" Icon="person_add" Style="width:100%" /><div class="auth-link">Already registered? <a href="login">Sign in</a></div></RadzenTemplateForm></div>
-@code { RegisterRequest model=new(); List<LookupItem> departments=[]; protected override async Task OnInitializedAsync()=>departments=await Api.GetAsync<List<LookupItem>>("api/lookups/departments")??[]; async Task SubmitRegistration(RegisterRequest _){try{var r=await Api.PostAsync<AuthResponse>("api/auth/register",model);if(r is null)return;await Store.SetAsync(r.Token);((JwtAuthenticationStateProvider)Auth).Changed();Nav.NavigateTo("");}catch(Exception e){Toast.Notify(NotificationSeverity.Error,"Registration failed",e.Message);}} }
+
+<PageTitle>Create account</PageTitle>
+<div class="auth-card wide">
+    <img src="images/DRTS_text_logo.png"
+         alt="DRTS — Document Receiving and Tracking System"
+         style="display:block;width:270px;height:190px;object-fit:cover;object-position:left center;margin:-20px 0 -12px" />
+    <h1>Create your account</h1>
+    <p>Register as an office user or an external customer so HR can identify where the document came from.</p>
+
+    <div class="account-kind-picker" role="radiogroup" aria-label="Account type">
+        <label class="account-kind-option @(model.AccountKind == AccountKind.InternalOffice ? "selected" : "")">
+            <input type="radio" name="account-kind" value="@AccountKind.InternalOffice" checked="@(model.AccountKind == AccountKind.InternalOffice)" @onchange="() => SetAccountKind(AccountKind.InternalOffice)" />
+            <span>
+                <strong>Office / department</strong>
+                <small>For employees or internal office representatives.</small>
+            </span>
+        </label>
+        <label class="account-kind-option @(model.AccountKind == AccountKind.ExternalCustomer ? "selected" : "")">
+            <input type="radio" name="account-kind" value="@AccountKind.ExternalCustomer" checked="@(model.AccountKind == AccountKind.ExternalCustomer)" @onchange="() => SetAccountKind(AccountKind.ExternalCustomer)" />
+            <span>
+                <strong>External customer</strong>
+                <small>For outside clients, suppliers, agencies, or walk-in customers.</small>
+            </span>
+        </label>
+    </div>
+
+    <div class="native-field">
+        <label for="register-name">Full name</label>
+        <input id="register-name" class="rz-textbox" type="text" @bind="model.FullName" @bind:event="oninput" autocomplete="name" />
+    </div>
+    <div class="native-field">
+        <label for="register-email">Email</label>
+        <input id="register-email" class="rz-textbox" type="email" @bind="model.Email" @bind:event="oninput" autocomplete="email" />
+    </div>
+
+    @if (model.AccountKind == AccountKind.InternalOffice)
+    {
+        <div class="native-field">
+            <label for="register-department">Office / department</label>
+            <select id="register-department" class="rz-dropdown" @bind="model.DepartmentId" style="width:100%;padding:12px">
+                <option value="">Select office or department</option>
+                @foreach (var department in departments)
+                {
+                    <option value="@department.Id">@department.Name</option>
+                }
+            </select>
+        </div>
+    }
+    else
+    {
+        <div class="native-field">
+            <label for="register-external-office">Customer office / organization</label>
+            <input id="register-external-office" class="rz-textbox" type="text" @bind="model.ExternalOrganizationName" @bind:event="oninput" placeholder="e.g., ABC Corporation, Barangay Office, Walk-in Customer" />
+        </div>
+    }
+
+    <div class="native-field">
+        <label for="register-password">Password (8+ characters)</label>
+        <input id="register-password" class="rz-textbox" type="password" @bind="model.Password" @bind:event="oninput" autocomplete="new-password" />
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(error))
+    {
+        <div class="validation-message" style="margin-bottom:12px">@error</div>
+    }
+
+    <RadzenButton Text="Create account" Icon="person_add" ButtonType="ButtonType.Button" Click="SubmitRegistration" Disabled="busy" Style="width:100%" />
+    <div class="auth-link">Already registered? <a href="login">Sign in</a></div>
+</div>
+
+@code {
+    private RegisterRequest model = new();
+    private List<LookupItem> departments = [];
+    private string? error;
+    private bool busy;
+
+    protected override async Task OnInitializedAsync() => departments = await Api.GetAsync<List<LookupItem>>("api/lookups/departments") ?? [];
+
+    private void SetAccountKind(AccountKind accountKind)
+    {
+        model.AccountKind = accountKind;
+        error = null;
+        if (accountKind == AccountKind.InternalOffice)
+        {
+            model.ExternalOrganizationName = null;
+        }
+        else
+        {
+            model.DepartmentId = null;
+        }
+    }
+
+    private async Task SubmitRegistration()
+    {
+        error = Validate();
+        if (error is not null) return;
+
+        try
+        {
+            busy = true;
+            var response = await Api.PostAsync<AuthResponse>("api/auth/register", model);
+            if (response is null) return;
+            await Store.SetAsync(response.Token);
+            ((JwtAuthenticationStateProvider)Auth).Changed();
+            Nav.NavigateTo("");
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            Toast.Notify(NotificationSeverity.Error, "Registration failed", ex.Message);
+        }
+        finally { busy = false; }
+    }
+
+    private string? Validate()
+    {
+        if (string.IsNullOrWhiteSpace(model.FullName)) return "Full name is required.";
+        if (string.IsNullOrWhiteSpace(model.Email)) return "Email is required.";
+        if (model.AccountKind == AccountKind.InternalOffice && model.DepartmentId is null) return "Office / department is required for internal users.";
+        if (model.AccountKind == AccountKind.ExternalCustomer && string.IsNullOrWhiteSpace(model.ExternalOrganizationName)) return "Customer office / organization is required for external customers.";
+        if (string.IsNullOrWhiteSpace(model.Password) || model.Password.Length < 8) return "Password must be at least 8 characters.";
+        return null;
+    }
+}
